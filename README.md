@@ -1,0 +1,1 @@
+# Galaxian-Paradigmas2025
