@@ -4,6 +4,19 @@ Class {
 	#category : #Juego
 }
 
+{ #category : #'as yet unclassified' }
+NaveMorph >> disparar [
+	| disparo |
+	disparo := DisparoMorph new.
+	
+	"Ubicamos el disparo en el centro de la nave"
+	disparo center: self center.
+	disparo top: self top - 10.
+	
+	"Agregamos el disparo al Juego (owner es el JuegoMorph que contiene a la nave)"
+	self owner addMorph: disparo.
+]
+
 { #category : #initialization }
 NaveMorph >> initialize [
     super initialize.
