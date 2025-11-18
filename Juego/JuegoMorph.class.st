@@ -2,7 +2,9 @@ Class {
 	#name : #JuegoMorph,
 	#superclass : #Morph,
 	#instVars : [
-		'nave'
+		'nave',
+		'enemigos',
+		'direccion'
 	],
 	#category : #Juego
 }
@@ -18,24 +20,50 @@ JuegoMorph class >> open [
    ^ ventana
 ]
 
+{ #category : #'as yet unclassified' }
+JuegoMorph >> bajarEnemigos [
+    enemigos do: [:e |
+        e position: e position + (0 @ 20).
+    ].
+
+]
+
+{ #category : #'as yet unclassified' }
+JuegoMorph >> crearEnemigos [
+    enemigos := OrderedCollection new.
+
+    1 to: 6 do: [:col |
+        1 to: 4 do: [:fila |
+            | e |
+            e := AlienMorph new.
+            e position: ((col * 60) @ (fila * 50)).
+            self addMorph: e.
+            enemigos add: e.
+        ].
+    ].
+
+]
+
 { #category : #initialization }
 JuegoMorph >> initialize [ 
 	"Creamos area de juego"
-	|unAlien|
+	"|unAlien|"
 	
 	super initialize.
 	self bounds: (0@0 extent: 600@400).
+	self extent: 600@400.
 	self color: Color black.
 	
 	nave:= NaveMorph new.
 	self addMorph: nave.
 	nave position: 300@300.
 	
-	unAlien := AlienMorph new.
-	unAlien position: 100@100.
-	self addMorph: unAlien.
+	"unAlien := AlienMorph new."
+	"unAlien position: 100@100."
+	"self addMorph: unAlien."
 	
-	
+	self crearEnemigos.
+	direccion := 2.
 	
 	self on: #keyDown send: #keyDown to: self.
 	self takeKeyboardFocus.
@@ -51,6 +79,29 @@ JuegoMorph >> keyDown: unEvento [
 	(tecla = $A) ifTrue: [ nave moverIzquierda ].
 	(tecla = $D) ifTrue: [ nave moverDerecha  ].
 	(tecla = $W) ifTrue: [ nave disparar ].
+]
+
+{ #category : #'as yet unclassified' }
+JuegoMorph >> moverEnemigos [
+
+    enemigos do: [:e |
+        e position: e position + (direccion @ 0).
+    ].
+
+		
+    "Si llegaron al borde derecho"
+    (enemigos anySatisfy: [:e | e right > (self bounds width - 10)]) ifTrue: [
+        direccion := direccion negated.
+        self bajarEnemigos.
+    ].
+
+    "Si llegaron al borde izquierdo"
+    (enemigos anySatisfy: [:e | e left < 10]) ifTrue: [
+        direccion := direccion negated.
+        self bajarEnemigos.
+    ].
+
+
 ]
 
 { #category : #'stepping and presenter' }
@@ -72,7 +123,9 @@ JuegoMorph >> step [
 				"Aquí podrían agregar sonido o sumar score"
 			]
 		]
-	]
+	].
+
+	self moverEnemigos 
 ]
 
 { #category : #'model - stepping' }
