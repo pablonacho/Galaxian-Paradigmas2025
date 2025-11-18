@@ -4,7 +4,9 @@ Class {
 	#instVars : [
 		'nave',
 		'enemigos',
-		'direccion'
+		'direccion',
+		'alienIzquierdoGuia',
+		'alienDerechoGuia'
 	],
 	#category : #Juego
 }
@@ -21,24 +23,23 @@ JuegoMorph class >> open [
 ]
 
 { #category : #'as yet unclassified' }
-JuegoMorph >> bajarEnemigos [
-    enemigos do: [:e |
-        e position: e position + (0 @ 20).
-    ].
-
-]
-
-{ #category : #'as yet unclassified' }
 JuegoMorph >> crearEnemigos [
+    | offsetX e |
+
     enemigos := OrderedCollection new.
+
+    offsetX := 120.
 
     1 to: 6 do: [:col |
         1 to: 4 do: [:fila |
-            | e |
             e := AlienMorph new.
-            e position: ((col * 60) @ (fila * 50)).
+            e position: ((col * 60) + offsetX) @ (fila * 50).
             self addMorph: e.
             enemigos add: e.
+
+            "Asignar guías"
+            (col = 1 and: [ fila = 1 ]) ifTrue: [ alienIzquierdoGuia := e ].
+            (col = 6 and: [ fila = 1 ]) ifTrue: [ alienDerechoGuia := e ].
         ].
     ].
 
@@ -58,10 +59,9 @@ JuegoMorph >> initialize [
 	self addMorph: nave.
 	nave position: 300@300.
 	
-	"unAlien := AlienMorph new."
-	"unAlien position: 100@100."
-	"self addMorph: unAlien."
-	
+	enemigos := OrderedCollection new.
+   alienIzquierdoGuia := nil.
+   alienDerechoGuia := nil.
 	self crearEnemigos.
 	direccion := 2.
 	
@@ -83,24 +83,27 @@ JuegoMorph >> keyDown: unEvento [
 
 { #category : #'as yet unclassified' }
 JuegoMorph >> moverEnemigos [
+    enemigos isEmpty ifTrue: [ ^ self ].
 
+    "Mover todos"
     enemigos do: [:e |
         e position: e position + (direccion @ 0).
     ].
 
-		
-    "Si llegaron al borde derecho"
-    (enemigos anySatisfy: [:e | e right > (self bounds width - 10)]) ifTrue: [
-        direccion := direccion negated.
-        self bajarEnemigos.
+    "Verificar que los guías no sean nil"
+    (alienIzquierdoGuia isNil or: [alienDerechoGuia isNil]) ifTrue: [
+        ^ self
     ].
 
-    "Si llegaron al borde izquierdo"
-    (enemigos anySatisfy: [:e | e left < 10]) ifTrue: [
+    "Rebote derecha"
+    (alienDerechoGuia right >= (self bounds right - 10)) ifTrue: [
         direccion := direccion negated.
-        self bajarEnemigos.
     ].
 
+    "Rebote izquierda"
+    (alienIzquierdoGuia left <= (self bounds left + 10)) ifTrue: [
+        direccion := direccion negated.
+    ].
 
 ]
 
