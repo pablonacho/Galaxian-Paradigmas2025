@@ -1,6 +1,9 @@
 Class {
 	#name : #NaveMorph,
 	#superclass : #Morph,
+	#instVars : [
+		'imagen'
+	],
 	#category : #Juego
 }
 
@@ -17,21 +20,37 @@ NaveMorph >> disparar [
 	self owner addMorph: disparo.
 ]
 
+{ #category : #drawing }
+NaveMorph >> drawOn: aCanvas [
+    aCanvas drawImage: imagen at: self bounds origin.
+]
+
+{ #category : #accessing }
+NaveMorph >> imagen [
+	^ imagen
+]
+
+{ #category : #accessing }
+NaveMorph >> imagen: anObject [
+	imagen := anObject
+]
+
 { #category : #initialization }
-NaveMorph >> initialize [
-    super initialize.
-    
-    "definimos tamaño"
-    self extent: 50@30.
-    
-    "definimos color"
-    self color: Color red.
+NaveMorph >> initialize [ 
+	super initialize.
+	
+	self loadImage.
+	
+ 	self handlesKeyboard: true.
+   self takeKeyboardFocus.
+]
 
-    "posicion inicial"
-    self position: 200@200.
-
-    self handlesKeyboard: true.
-    self takeKeyboardFocus.
+{ #category : #'as yet unclassified' }
+NaveMorph >> loadImage [
+    | original |
+    original := Form fromFileNamed: 'NavePrincipal.png'.
+    imagen := original scaledToSize: 50@50.
+    self extent: imagen extent.
 
 ]
 
