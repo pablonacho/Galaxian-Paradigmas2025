@@ -24,9 +24,13 @@ NaveMorph >> initialize [
 
 { #category : #movement }
 NaveMorph >> moverDerecha [
-	"metodo para que la nave se mueva a izquierda"
+	"metodo para que la nave se mueva a derecha"
 
 	self position: self position + (10 @ 0).
+								
+	self owner ifNotNil: [ (self right > self owner bounds right )
+									ifTrue: [ self right: self owner bounds right  ] ]
+	
 ]
 
 { #category : #movement }
@@ -34,4 +38,9 @@ NaveMorph >> moverIzquierda [
 	"metodo para que la nave se mueva a izquierda"
 
 	self position: self position - (10 @ 0).
+	
+	self owner ifNotNil: [ (self left  < self owner bounds left )
+									ifTrue: [ self left: self owner bounds left ] ]
+	
+		
 ]
