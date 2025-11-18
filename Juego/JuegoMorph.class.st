@@ -6,7 +6,8 @@ Class {
 		'enemigos',
 		'direccion',
 		'alienIzquierdoGuia',
-		'alienDerechoGuia'
+		'alienDerechoGuia',
+		'estrellas'
 	],
 	#category : #Juego
 }
@@ -45,6 +46,37 @@ JuegoMorph >> crearEnemigos [
 
 ]
 
+{ #category : #'as yet unclassified' }
+JuegoMorph >> crearEstrellas [
+    | cantidad ancho alto |
+    estrellas := OrderedCollection new.
+
+    cantidad := 50.
+    ancho := self bounds width.
+    alto := self bounds height.
+
+    1 to: cantidad do: [:i |
+        | e x y brillo tamaño |
+
+        e := EstrellaMorph new.
+
+        x := (Random new nextInt: ancho).
+        y := (Random new nextInt: alto).
+
+        tamaño := #(1 2 2 3) atRandom.
+        brillo := { Color white. Color veryLightGray. Color lightGray } atRandom.
+
+
+        e extent: tamaño @ tamaño.
+        e color: brillo.
+        e position: x@y.
+
+        self addMorphBack: e.
+        estrellas add: e.
+    ].
+
+]
+
 { #category : #initialization }
 JuegoMorph >> initialize [ 
 	"Creamos area de juego"
@@ -68,6 +100,7 @@ JuegoMorph >> initialize [
 	self on: #keyDown send: #keyDown to: self.
 	self takeKeyboardFocus.
 	self startStepping.
+	self crearEstrellas.
 ]
 
 { #category : #'event handling' }
@@ -107,6 +140,22 @@ JuegoMorph >> moverEnemigos [
 
 ]
 
+{ #category : #'as yet unclassified' }
+JuegoMorph >> moverEstrellas [
+    | alto |
+    alto := self bounds height.
+
+    estrellas do: [:e |
+        e position: e position + (0@1).   "velocidad vertical"
+
+        "Cuando salen de la pantalla, vuelven arriba"
+        (e position y > alto) ifTrue: [
+            e position: (e position x @ 0).
+        ].
+    ].
+
+]
+
 { #category : #'stepping and presenter' }
 JuegoMorph >> step [ 	
 	| disparos aliens |
@@ -128,7 +177,8 @@ JuegoMorph >> step [
 		]
 	].
 
-	self moverEnemigos 
+	self moverEnemigos.
+	self moverEstrellas.
 ]
 
 { #category : #'model - stepping' }
