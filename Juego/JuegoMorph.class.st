@@ -7,7 +7,9 @@ Class {
 		'direccion',
 		'alienIzquierdoGuia',
 		'alienDerechoGuia',
-		'estrellas'
+		'estrellas',
+		'puntaje',
+		'etiquetaPuntaje'
 	],
 	#category : #Juego
 }
@@ -25,25 +27,27 @@ JuegoMorph class >> open [
 
 { #category : #'as yet unclassified' }
 JuegoMorph >> crearEnemigos [
-    | offsetX e |
-
+    | offsetX e posRelativa |
     enemigos := OrderedCollection new.
-
     offsetX := 120.
 
     1 to: 6 do: [:col |
         1 to: 4 do: [:fila |
             e := AlienMorph new.
-            e position: ((col * 60) + offsetX) @ (fila * 50).
+            
+            "Calculamos su posición relativa (su asiento)"
+            posRelativa := ((col * 60) + offsetX) @ (fila * 50).
+            
+            "Se la guardamos al alien"
+            e offsetOriginal: posRelativa.
+            
+            "Lo ubicamos en pantalla (Relativo a la ventana del juego)"
+            e position: (self position + posRelativa).
+            
             self addMorph: e.
             enemigos add: e.
-
-            "Asignar guías"
-            (col = 1 and: [ fila = 1 ]) ifTrue: [ alienIzquierdoGuia := e ].
-            (col = 6 and: [ fila = 1 ]) ifTrue: [ alienDerechoGuia := e ].
         ].
     ].
-
 ]
 
 { #category : #'as yet unclassified' }
@@ -87,6 +91,11 @@ JuegoMorph >> initialize [
 	self extent: 600@400.
 	self color: Color black.
 	
+	puntaje := 0.
+   etiquetaPuntaje := StringMorph new contents: 'Puntaje: 0'.
+   etiquetaPuntaje color: Color white; position: 10@10.
+   self addMorph: etiquetaPuntaje.
+	
 	nave:= NaveMorph new.
 	self addMorph: nave.
 	nave position: 300@300.
@@ -116,28 +125,64 @@ JuegoMorph >> keyDown: unEvento [
 
 { #category : #'as yet unclassified' }
 JuegoMorph >> moverEnemigos [
-    enemigos isEmpty ifTrue: [ ^ self ].
 
-    "Mover todos"
+   | enFormacion bordeDerecho bordeIzquierdo lider |
+
+    enFormacion := enemigos select: [:e | e estaAtacando not].
+    lider := enFormacion ifNotEmpty: [ enFormacion first ] ifEmpty: [ nil ].
+
+    
+    (enFormacion notEmpty and: [100 atRandom < 3]) ifTrue: [
+        enFormacion atRandom atacar: true.
+    ].
+
     enemigos do: [:e |
-        e position: e position + (direccion @ 0).
+        e estaAtacando ifTrue: [
+            
+            
+            e retornando ifTrue: [
+                lider ifNotNil: [
+                    | destino |
+                    destino := lider position - lider offsetOriginal + e offsetOriginal.
+                    
+                    "Vuelo suave"
+                    (e position dist: destino) > 5 
+                        ifTrue: [ e position: e position + ((destino - e position) * 0.15) ]
+                        ifFalse: [ 
+                            "Llegó: Se sienta, apaga ataque y apaga retorno"
+                            e position: destino.
+                            e atacar: false.
+                            e retornando: false. 
+                        ]
+                ]
+            ]
+            
+            ifFalse: [
+               
+                e position: e position + (0@7).
+                
+               
+                (e center x < nave center x) 
+                    ifTrue: [ e position: e position + (3@0) ]
+                    ifFalse: [ e position: e position - (3@0) ].
+                    
+               
+                (e top > self bounds bottom) ifTrue: [
+                    e position: (e position x @ (self bounds top - 50)).
+                    e retornando: true. " <--- Aquí activamos la memoria"
+                ].
+            ].
+        ].
     ].
+    enFormacion ifEmpty: [ ^ self ].
 
-    "Verificar que los guías no sean nil"
-    (alienIzquierdoGuia isNil or: [alienDerechoGuia isNil]) ifTrue: [
-        ^ self
-    ].
+    enFormacion do: [:e | e position: e position + (direccion @ 0) ].
 
-    "Rebote derecha"
-    (alienDerechoGuia right >= (self bounds right - 10)) ifTrue: [
-        direccion := direccion negated.
-    ].
+    bordeDerecho := (enFormacion collect: [:e | e right]) max.
+    bordeIzquierdo := (enFormacion collect: [:e | e left]) min.
 
-    "Rebote izquierda"
-    (alienIzquierdoGuia left <= (self bounds left + 10)) ifTrue: [
-        direccion := direccion negated.
-    ].
-
+    (bordeDerecho >= (self bounds right - 10) and: [direccion > 0]) ifTrue: [ direccion := -2 ].
+    (bordeIzquierdo <= (self bounds left + 10) and: [direccion < 0]) ifTrue: [ direccion := 2 ].
 ]
 
 { #category : #'as yet unclassified' }
@@ -156,6 +201,25 @@ JuegoMorph >> moverEstrellas [
 
 ]
 
+{ #category : #'as yet unclassified' }
+JuegoMorph >> reiniciarJuego [
+    self stopStepping.
+    self submorphs do: [:m | 
+        ((m isKindOf: AlienMorph) or: [m isKindOf: DisparoMorph]) ifTrue: [ m delete ] 
+    ].
+    enemigos removeAll.
+    puntaje := 0.
+    etiquetaPuntaje contents: 'Puntaje: 0'.
+    
+    "Reiniciar Nave también relativo al juego"
+    nave position: (self position + (310@310)). 
+    
+    direccion := 2.
+    self crearEnemigos. "Ahora usará las coordenadas relativas correctas"
+    self startStepping.
+    self takeKeyboardFocus.
+]
+
 { #category : #'stepping and presenter' }
 JuegoMorph >> step [ 	
 	| disparos aliens |
@@ -168,17 +232,41 @@ JuegoMorph >> step [
 		aliens do: [:unAlien |
 			"Chequeamos colisión"
 			(unDisparo bounds intersects: unAlien bounds) ifTrue: [
-				"Efecto de colisión: borrar ambos y (opcional) sumar puntos"
+				
 				unDisparo delete.
 				unAlien delete.
 				
-				"Aquí podrían agregar sonido o sumar score"
+				enemigos remove: unAlien ifAbsent: []. "Sacarlo de la lista lógica"
+            	puntaje := puntaje + 10.
+            etiquetaPuntaje contents: 'Puntaje: ', puntaje asString.
 			]
 		]
 	].
 
 	self moverEnemigos.
 	self moverEstrellas.
+	
+	enemigos isEmpty ifTrue: [
+        self stopStepping. "Pausar el juego"
+        
+        (UIManager default confirm: '¡FELICITACIONES! Has ganado. ¿Jugar de nuevo?')
+            ifTrue: [ self reiniciarJuego ]
+            ifFalse: [ self delete ].
+            
+        ^ self "Salimos para no seguir procesando"
+    ].
+	
+
+enemigos do: [:unAlien |
+        (unAlien bounds intersects: nave bounds) ifTrue: [
+            self stopStepping. "Pausar juego"
+            
+            (UIManager default confirm: '¡GAME OVER! ¿Quieres jugar de nuevo?')
+                ifTrue: [ self reiniciarJuego ]
+                ifFalse: [ self delete ]. "Cierra la ventana"
+            ^ self "Salir del método step para evitar errores"
+        ]
+    ].
 ]
 
 { #category : #'model - stepping' }
