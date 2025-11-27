@@ -240,7 +240,7 @@ JuegoMorph >> reiniciarJuego [
 
 { #category : #'stepping and presenter' }
 JuegoMorph >> step [ 	
-	| disparos aliens disparosEnemigos atacantes e |
+	| disparos aliens disparosEnemigos atacantes |
 	
 	"Obtenemos colecciones de los disparos y aliens actuales en el tablero"
 	disparos := self submorphs select: [:m | m isKindOf: DisparoMorph].
