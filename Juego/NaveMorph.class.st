@@ -7,7 +7,7 @@ Class {
 	#category : #Juego
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #execution }
 NaveMorph >> disparar [
 	| disparo |
 	disparo := DisparoMorph new.
@@ -45,7 +45,7 @@ NaveMorph >> initialize [
    self takeKeyboardFocus.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #figures }
 NaveMorph >> loadImage [
     | original |
     original := Form fromFileNamed: 'NavePrincipal.png'.
@@ -58,7 +58,7 @@ NaveMorph >> loadImage [
 NaveMorph >> moverDerecha [
 	"metodo para que la nave se mueva a derecha"
 
-	self position: self position + (10 @ 0).
+	self position: self position + (15 @ 0).
 								
 	self owner ifNotNil: [ (self right > self owner bounds right )
 									ifTrue: [ self right: self owner bounds right  ] ]
@@ -69,7 +69,7 @@ NaveMorph >> moverDerecha [
 NaveMorph >> moverIzquierda [
 	"metodo para que la nave se mueva a izquierda"
 
-	self position: self position - (10 @ 0).
+	self position: self position - (15 @ 0).
 	
 	self owner ifNotNil: [ (self left  < self owner bounds left )
 									ifTrue: [ self left: self owner bounds left ] ]

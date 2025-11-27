@@ -25,7 +25,7 @@ JuegoMorph class >> open [
    ^ ventana
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #initialization }
 JuegoMorph >> crearEnemigos [
     | offsetX e posRelativa |
     enemigos := OrderedCollection new.
@@ -50,7 +50,7 @@ JuegoMorph >> crearEnemigos [
     ].
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #initialization }
 JuegoMorph >> crearEstrellas [
     | cantidad ancho alto |
     estrellas := OrderedCollection new.
@@ -123,7 +123,7 @@ JuegoMorph >> keyDown: unEvento [
 	(tecla = $W) ifTrue: [ nave disparar ].
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #movement }
 JuegoMorph >> moverEnemigos [
 
    | enFormacion bordeDerecho bordeIzquierdo lider |
@@ -185,7 +185,7 @@ JuegoMorph >> moverEnemigos [
     (bordeIzquierdo <= (self bounds left + 10) and: [direccion < 0]) ifTrue: [ direccion := 2 ].
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #movement }
 JuegoMorph >> moverEstrellas [
     | alto |
     alto := self bounds height.
@@ -201,7 +201,7 @@ JuegoMorph >> moverEstrellas [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #initialization }
 JuegoMorph >> reiniciarJuego [
     self stopStepping.
     self submorphs do: [:m | 

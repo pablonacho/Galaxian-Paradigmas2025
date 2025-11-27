@@ -48,7 +48,7 @@ AlienMorph >> initialize [
 	self loadImage.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #figures }
 AlienMorph >> loadImage [
     | original |
     original := Form fromFileNamed: 'naveEnemiga.png'.
