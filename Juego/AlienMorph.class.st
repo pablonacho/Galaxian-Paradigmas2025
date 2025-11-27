@@ -20,6 +20,18 @@ AlienMorph >> atacar: unBooleano [
     atacando := unBooleano
 ]
 
+{ #category : #actions }
+AlienMorph >> disparar [
+	| disparo |
+	disparo := DisparoEnemigoMorph new.
+	
+	
+	disparo center: self center.
+	disparo top: self bottom + 5.
+	
+	self owner addMorph: disparo.
+]
+
 { #category : #drawing }
 AlienMorph >> drawOn: aCanvas [
     aCanvas drawImage: imagen at: self bounds origin.

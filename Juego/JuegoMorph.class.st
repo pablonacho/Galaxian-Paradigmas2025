@@ -20,32 +20,55 @@ JuegoMorph class >> open [
    | ventana juego |
    juego := self new.
    ventana := juego openInWindowLabeled: 'Galaxyan Paradigmas 2025'.
-   ventana extent: 600@400.
+   ventana extent: 800@600.
 	juego takeKeyboardFocus.
    ^ ventana
 ]
 
 { #category : #initialization }
 JuegoMorph >> crearEnemigos [
-    | offsetX e posRelativa |
+    | offsetX e posRelativa debeCrear |
     enemigos := OrderedCollection new.
-    offsetX := 120.
+    offsetX := 50. 
 
-    1 to: 6 do: [:col |
-        1 to: 4 do: [:fila |
-            e := AlienMorph new.
+    
+    1 to: 5 do: [:fila |
+        
+        
+        1 to: 9 do: [:col |
             
-            "Calculamos su posición relativa (su asiento)"
-            posRelativa := ((col * 60) + offsetX) @ (fila * 50).
+            debeCrear := false.
+
+           
             
-            "Se la guardamos al alien"
-            e offsetOriginal: posRelativa.
             
-            "Lo ubicamos en pantalla (Relativo a la ventana del juego)"
-            e position: (self position + posRelativa).
+            (fila >= 4) ifTrue: [ debeCrear := true ].
             
-            self addMorph: e.
-            enemigos add: e.
+          
+            (fila = 3 and: [col between: 2 and: 8]) ifTrue: [ debeCrear := true ].
+            
+            
+            (fila = 2 and: [col between: 3 and: 7]) ifTrue: [ debeCrear := true ].
+            
+            
+            (fila = 1 and: [col = 4 or: [col = 6]]) ifTrue: [ debeCrear := true ].
+
+
+            
+            debeCrear ifTrue: [
+                e := AlienMorph new.
+                
+                
+                posRelativa := ((col * 60) + offsetX) @ (fila * 50).
+                
+                e offsetOriginal: posRelativa.
+                e position: (self position + posRelativa).
+                
+                self addMorph: e.
+                enemigos add: e.
+                
+               
+            ].
         ].
     ].
 ]
@@ -87,8 +110,8 @@ JuegoMorph >> initialize [
 	"|unAlien|"
 	
 	super initialize.
-	self bounds: (0@0 extent: 600@400).
-	self extent: 600@400.
+	self bounds: (0@0 extent: 800@600).
+	self extent: 800@600.
 	self color: Color black.
 	
 	puntaje := 0.
@@ -98,7 +121,7 @@ JuegoMorph >> initialize [
 	
 	nave:= NaveMorph new.
 	self addMorph: nave.
-	nave position: 300@300.
+	nave position: 300@500.
 	
 	enemigos := OrderedCollection new.
    alienIzquierdoGuia := nil.
@@ -185,34 +208,19 @@ JuegoMorph >> moverEnemigos [
     (bordeIzquierdo <= (self bounds left + 10) and: [direccion < 0]) ifTrue: [ direccion := 2 ].
 ]
 
-{ #category : #movement }
-JuegoMorph >> moverEstrellas [
-    | alto |
-    alto := self bounds height.
-
-    estrellas do: [:e |
-        e position: e position + (0@1).   "velocidad vertical"
-
-        "Cuando salen de la pantalla, vuelven arriba"
-        (e position y > alto) ifTrue: [
-            e position: (e position x @ 0).
-        ].
-    ].
-
-]
-
 { #category : #initialization }
 JuegoMorph >> reiniciarJuego [
     self stopStepping.
     self submorphs do: [:m | 
-        ((m isKindOf: AlienMorph) or: [m isKindOf: DisparoMorph]) ifTrue: [ m delete ] 
+        ((m isKindOf: AlienMorph) or: [(m isKindOf: DisparoMorph) or: [m isKindOf: DisparoEnemigoMorph]])
+			ifTrue: [ m delete ] 
     ].
     enemigos removeAll.
     puntaje := 0.
     etiquetaPuntaje contents: 'Puntaje: 0'.
     
     "Reiniciar Nave también relativo al juego"
-    nave position: (self position + (310@310)). 
+    nave position: (self position + (300@500)). 
     
     direccion := 2.
     self crearEnemigos. "Ahora usará las coordenadas relativas correctas"
@@ -222,7 +230,7 @@ JuegoMorph >> reiniciarJuego [
 
 { #category : #'stepping and presenter' }
 JuegoMorph >> step [ 	
-	| disparos aliens |
+	| disparos aliens disparosEnemigos atacantes e |
 	
 	"Obtenemos colecciones de los disparos y aliens actuales en el tablero"
 	disparos := self submorphs select: [:m | m isKindOf: DisparoMorph].
@@ -242,9 +250,29 @@ JuegoMorph >> step [
 			]
 		]
 	].
+	(enemigos notEmpty and: [100 atRandom < 3]) ifTrue: [
+		enemigos atRandom disparar.
+	].
+
+	
+	disparosEnemigos := self submorphs select: [:m | m isKindOf: DisparoEnemigoMorph].
+	
+	disparosEnemigos do: [:balaMala |
+		(balaMala bounds intersects: nave bounds) ifTrue: [
+			self stopStepping.
+			(UIManager default confirm: '¡TE DIERON! Fin del juego. ¿Reiniciar?')
+				ifTrue: [ self reiniciarJuego ]
+				ifFalse: [ self delete ].
+			^ self "Salimos ya"
+		]
+	].
+	atacantes := enemigos select:[:x| x estaAtacando ].
+		
+	(atacantes notEmpty and:[100 atRandom < 5]) ifTrue:[ atacantes atRandom disparar.
+		].
 
 	self moverEnemigos.
-	self moverEstrellas.
+	
 	
 	enemigos isEmpty ifTrue: [
         self stopStepping. "Pausar el juego"
