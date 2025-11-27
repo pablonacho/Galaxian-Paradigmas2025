@@ -104,10 +104,18 @@ JuegoMorph >> crearEstrellas [
 
 ]
 
+{ #category : #actions }
+JuegoMorph >> crearExplosion: unPuntoCenral [
+	|boom|
+	boom:=ExplosionMorph new.
+	boom center: unPuntoCenral.
+	self addMorph: boom.
+]
+
 { #category : #initialization }
 JuegoMorph >> initialize [ 
 	"Creamos area de juego"
-	"|unAlien|"
+	
 	
 	super initialize.
 	self bounds: (0@0 extent: 800@600).
@@ -218,10 +226,12 @@ JuegoMorph >> reiniciarJuego [
     enemigos removeAll.
     puntaje := 0.
     etiquetaPuntaje contents: 'Puntaje: 0'.
-    
+ 
+	(nave owner isNil) ifTrue:[ self addMorph: nave].   
     "Reiniciar Nave también relativo al juego"
     nave position: (self position + (300@500)). 
-    
+	    
+
     direccion := 2.
     self crearEnemigos. "Ahora usará las coordenadas relativas correctas"
     self startStepping.
@@ -240,7 +250,7 @@ JuegoMorph >> step [
 		aliens do: [:unAlien |
 			"Chequeamos colisión"
 			(unDisparo bounds intersects: unAlien bounds) ifTrue: [
-				
+				self crearExplosion: unAlien center.
 				unDisparo delete.
 				unAlien delete.
 				
@@ -258,7 +268,8 @@ JuegoMorph >> step [
 	disparosEnemigos := self submorphs select: [:m | m isKindOf: DisparoEnemigoMorph].
 	
 	disparosEnemigos do: [:balaMala |
-		(balaMala bounds intersects: nave bounds) ifTrue: [
+		(balaMala bounds intersects: nave bounds) ifTrue: [	balaMala delete. nave delete.
+			self crearExplosion: nave center.
 			self stopStepping.
 			(UIManager default confirm: '¡TE DIERON! Fin del juego. ¿Reiniciar?')
 				ifTrue: [ self reiniciarJuego ]
@@ -287,6 +298,8 @@ JuegoMorph >> step [
 
 enemigos do: [:unAlien |
         (unAlien bounds intersects: nave bounds) ifTrue: [
+				self crearExplosion: nave center.
+				unAlien delete. nave delete.
             self stopStepping. "Pausar juego"
             
             (UIManager default confirm: '¡GAME OVER! ¿Quieres jugar de nuevo?')
