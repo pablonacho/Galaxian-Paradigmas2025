@@ -1,6 +1,6 @@
 Class {
 	#name : #ExplosionMorph,
-	#superclass : #EllipseMorph,
+	#superclass : #EfectoVisualMorph,
 	#category : #Juego
 }
 
@@ -9,7 +9,6 @@ ExplosionMorph >> initialize [
 	super initialize.
 		self color: Color orange.
 		self extent: 10@10.
-		self startStepping.
 		
 ]
 

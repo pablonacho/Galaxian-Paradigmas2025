@@ -88,7 +88,7 @@ JuegoMorph >> crearEstrellas [
         x := (Random new nextInt: ancho).
         y := (Random new nextInt: alto).
 
-        tamaño := #(1 2 2 3) atRandom.
+        tamaño := #(2 3 4 5) atRandom.
         brillo := { Color white. Color veryLightGray. Color lightGray } atRandom.
 
 

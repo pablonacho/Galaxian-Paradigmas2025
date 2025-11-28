@@ -1,6 +1,6 @@
 Class {
 	#name : #DisparoMorph,
-	#superclass : #Morph,
+	#superclass : #ProyectilMorph,
 	#category : #Juego
 }
 
@@ -8,16 +8,10 @@ Class {
 DisparoMorph >> initialize [
 	super initialize.
 	self color: Color yellow.
-	self extent: 5@10. "Un disparo pequeño y vertical"
+	
 ]
 
-{ #category : #'stepping and presenter' }
-DisparoMorph >> step [
-	self position: self position - (0 @ 10).
-	(self position y < 0) ifTrue: [ self delete ].
-]
-
-{ #category : #'model - stepping' }
-DisparoMorph >> stepTime [ 
-	^20
+{ #category : #accessing }
+DisparoMorph >> velocidad [
+	^ 0 @ -10
 ]

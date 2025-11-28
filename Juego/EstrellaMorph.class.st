@@ -1,22 +1,15 @@
 Class {
 	#name : #EstrellaMorph,
-	#superclass : #Morph,
+	#superclass : #EfectoVisualMorph,
 	#category : #Juego
 }
-
-{ #category : #drawing }
-EstrellaMorph >> drawOn: aCanvas [
-    aCanvas fillRectangle: self bounds color: self color.
-
-]
 
 { #category : #initialization }
 EstrellaMorph >> initialize [
     super initialize.
-	 self bounds width.
     self color: Color white.
     self beTransparent.
-	 self startStepping.
+	 
 ]
 
 { #category : #initialization }
