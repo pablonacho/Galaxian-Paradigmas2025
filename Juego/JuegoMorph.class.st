@@ -36,7 +36,7 @@ JuegoMorph >> crearEnemigos [
             
             debeCrear := false.
 
-            "--- Definimos la forma de la grilla (IGUAL QUE ANTES) ---"
+           
             (fila >= 4) ifTrue: [ debeCrear := true ].
             (fila = 3 and: [col between: 2 and: 9]) ifTrue: [ debeCrear := true ].
             (fila = 2 and: [col between: 3 and: 8]) ifTrue: [ debeCrear := true ].
@@ -44,9 +44,7 @@ JuegoMorph >> crearEnemigos [
 
             debeCrear ifTrue: [
                 
-                "--- AQUI ESTA EL CAMBIO: Elección de Clase ---"
                 
-                "Por defecto usamos el Comun (filas 4, 5, 6)"
                 claseAlien := AlienComun.
                 
                 "Si es fila 2 o 3, usamos el Rapido (rojos)"
@@ -58,17 +56,13 @@ JuegoMorph >> crearEnemigos [
                 "Instanciamos la clase que elegimos arriba"
                 e := claseAlien new.
                 
-                "----------------------------------------------"
-
-                "El resto sigue igual..."
+             
                 posRelativa := ((col * 60) + offsetX) @ (fila * 50).
                 
                 e offsetOriginal: posRelativa.
                 e position: (self position + posRelativa).
                 
-                "Opcional: Si no tienes imagenes aun, dales color para diferenciarlos"
-                "fila = 1 ifTrue: [ e color: Color green ]."
-                "fila = 2 ifTrue: [ e color: Color red ]."
+              
                 
                 self addMorph: e.
                 enemigos add: e.

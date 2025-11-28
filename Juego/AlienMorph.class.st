@@ -59,6 +59,11 @@ AlienMorph >> loadImage [
 	self extent: imagen extent.
 ]
 
+{ #category : #image }
+AlienMorph >> nombreImagen [ 
+	^self subclassResponsibility 
+]
+
 { #category : #accessing }
 AlienMorph >> offsetOriginal [
 	^offsetOriginal 
@@ -67,6 +72,11 @@ AlienMorph >> offsetOriginal [
 { #category : #accessing }
 AlienMorph >> offsetOriginal: unPunto [
 	offsetOriginal := unPunto
+]
+
+{ #category : #movement }
+AlienMorph >> realizarMovimientoDeAtaqueHacia: unaNave [
+	^self subclassResponsibility 
 ]
 
 { #category : #accessing }
