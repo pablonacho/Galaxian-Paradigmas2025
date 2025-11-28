@@ -49,7 +49,7 @@ NaveMorph >> initialize [
 NaveMorph >> loadImage [
     | original |
     original := Form fromFileNamed: 'NavePrincipal.png'.
-    imagen := original scaledToSize: 50@50.
+    imagen := original scaledToSize: 60@60.
     self extent: imagen extent.
 
 ]

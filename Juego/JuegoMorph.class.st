@@ -27,47 +27,51 @@ JuegoMorph class >> open [
 
 { #category : #initialization }
 JuegoMorph >> crearEnemigos [
-    | offsetX e posRelativa debeCrear |
+    | offsetX e posRelativa debeCrear claseAlien |
     enemigos := OrderedCollection new.
     offsetX := 50. 
 
-    
-    1 to: 5 do: [:fila |
-        
-        
-        1 to: 9 do: [:col |
+    1 to: 6 do: [:fila |
+        1 to: 10 do: [:col |
             
             debeCrear := false.
 
-           
-            
-            
+            "--- Definimos la forma de la grilla (IGUAL QUE ANTES) ---"
             (fila >= 4) ifTrue: [ debeCrear := true ].
-            
-          
-            (fila = 3 and: [col between: 2 and: 8]) ifTrue: [ debeCrear := true ].
-            
-            
-            (fila = 2 and: [col between: 3 and: 7]) ifTrue: [ debeCrear := true ].
-            
-            
-            (fila = 1 and: [col = 4 or: [col = 6]]) ifTrue: [ debeCrear := true ].
+            (fila = 3 and: [col between: 2 and: 9]) ifTrue: [ debeCrear := true ].
+            (fila = 2 and: [col between: 3 and: 8]) ifTrue: [ debeCrear := true ].
+            (fila = 1 and: [col = 4 or: [col = 7]]) ifTrue: [ debeCrear := true ].
 
-
-            
             debeCrear ifTrue: [
-                e := AlienMorph new.
                 
+                "--- AQUI ESTA EL CAMBIO: Elección de Clase ---"
                 
+                "Por defecto usamos el Comun (filas 4, 5, 6)"
+                claseAlien := AlienComun.
+                
+                "Si es fila 2 o 3, usamos el Rapido (rojos)"
+                (fila = 2 or: [fila = 3]) ifTrue: [ claseAlien := AlienRapido ].
+                
+                "Si es fila 1, usamos el Jefe"
+                (fila = 1) ifTrue: [ claseAlien := AlienJefe ].
+                
+                "Instanciamos la clase que elegimos arriba"
+                e := claseAlien new.
+                
+                "----------------------------------------------"
+
+                "El resto sigue igual..."
                 posRelativa := ((col * 60) + offsetX) @ (fila * 50).
                 
                 e offsetOriginal: posRelativa.
                 e position: (self position + posRelativa).
                 
+                "Opcional: Si no tienes imagenes aun, dales color para diferenciarlos"
+                "fila = 1 ifTrue: [ e color: Color green ]."
+                "fila = 2 ifTrue: [ e color: Color red ]."
+                
                 self addMorph: e.
                 enemigos add: e.
-                
-               
             ].
         ].
     ].
@@ -190,12 +194,7 @@ JuegoMorph >> moverEnemigos [
             
             ifFalse: [
                
-                e position: e position + (0@7).
-                
-               
-                (e center x < nave center x) 
-                    ifTrue: [ e position: e position + (3@0) ]
-                    ifFalse: [ e position: e position - (3@0) ].
+             	e realizarMovimientoDeAtaqueHacia: nave.
                     
                
                 (e top > self bounds bottom) ifTrue: [

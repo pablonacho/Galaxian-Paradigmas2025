@@ -62,11 +62,16 @@ AlienMorph >> initialize [
 
 { #category : #figures }
 AlienMorph >> loadImage [
-    | original |
-    original := Form fromFileNamed: 'naveEnemiga.png'.
-    imagen := original scaledToSize: 50@50.
-    self extent: imagen extent.
+    | original nombre |
+    nombre := self nombreImagen.
+	original := Form fromFileNamed: nombre.
+	imagen := original scaledToSize: 30@30.
+	self extent: imagen extent.
+]
 
+{ #category : #'as yet unclassified' }
+AlienMorph >> nombreImagen [
+	^ 'naveEnemiga.png'
 ]
 
 { #category : #accessing }
@@ -77,6 +82,14 @@ AlienMorph >> offsetOriginal [
 { #category : #accessing }
 AlienMorph >> offsetOriginal: unPunto [
 	offsetOriginal := unPunto
+]
+
+{ #category : #'as yet unclassified' }
+AlienMorph >> realizarMovimientoDeAtaqueHacia: unaNave [
+	self position: self position + (0@7).
+    (self center x < unaNave center x) 
+        ifTrue: [ self position: self position + (3@0) ]
+        ifFalse: [ self position: self position - (3@0) ].
 ]
 
 { #category : #accessing }
