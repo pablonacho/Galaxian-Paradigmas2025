@@ -42,16 +42,6 @@ AlienMorph >> estaAtacando [
 	^atacando.
 ]
 
-{ #category : #accessing }
-AlienMorph >> imagen [
-	^ imagen
-]
-
-{ #category : #accessing }
-AlienMorph >> imagen: anObject [
-	imagen := anObject
-]
-
 { #category : #initialization }
 AlienMorph >> initialize [
 	super initialize.
@@ -69,11 +59,6 @@ AlienMorph >> loadImage [
 	self extent: imagen extent.
 ]
 
-{ #category : #'as yet unclassified' }
-AlienMorph >> nombreImagen [
-	^ 'naveEnemiga.png'
-]
-
 { #category : #accessing }
 AlienMorph >> offsetOriginal [
 	^offsetOriginal 
@@ -82,14 +67,6 @@ AlienMorph >> offsetOriginal [
 { #category : #accessing }
 AlienMorph >> offsetOriginal: unPunto [
 	offsetOriginal := unPunto
-]
-
-{ #category : #'as yet unclassified' }
-AlienMorph >> realizarMovimientoDeAtaqueHacia: unaNave [
-	self position: self position + (0@7).
-    (self center x < unaNave center x) 
-        ifTrue: [ self position: self position + (3@0) ]
-        ifFalse: [ self position: self position - (3@0) ].
 ]
 
 { #category : #accessing }
