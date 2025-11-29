@@ -79,6 +79,11 @@ AlienMorph >> realizarMovimientoDeAtaqueHacia: unaNave [
 	^self subclassResponsibility 
 ]
 
+{ #category : #control }
+AlienMorph >> recibirDaño [
+	^true
+]
+
 { #category : #accessing }
 AlienMorph >> retornando [
 	^retornando

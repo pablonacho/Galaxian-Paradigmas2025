@@ -7,7 +7,7 @@ Class {
 { #category : #initialization }
 DisparoEnemigoMorph >> initialize [ 
 	super initialize.
-	self color: Color orange.
+	self color: Color red.
 	
 ]
 

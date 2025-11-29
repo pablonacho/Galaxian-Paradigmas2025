@@ -11,7 +11,7 @@ AlienRapido >> nombreImagen [
 
 { #category : #movement }
 AlienRapido >> realizarMovimientoDeAtaqueHacia: unaNave [
-	  self position: self position + (0@15). 
+	self position: self position + (0@15). 
     
     (self center x < unaNave center x) 
         ifTrue: [ self position: self position + (6@0) ]

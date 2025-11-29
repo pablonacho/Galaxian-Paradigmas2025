@@ -9,7 +9,8 @@ Class {
 		'alienDerechoGuia',
 		'estrellas',
 		'puntaje',
-		'etiquetaPuntaje'
+		'etiquetaPuntaje',
+		'nivel'
 	],
 	#category : #Juego
 }
@@ -111,6 +112,26 @@ JuegoMorph >> crearExplosion: unPuntoCenral [
 ]
 
 { #category : #initialization }
+JuegoMorph >> crearJefeFinal [ 
+	| jefe barra |
+	jefe := JefeFinal new.
+
+	jefe align: jefe topCenter with: (self topCenter + (0@80)).
+	
+	barra := BarraVidaMorph new.
+	barra extent: 400@20.
+	barra align: barra topCenter with: (self topCenter + (0@15)).
+
+	self addMorph: jefe.
+	self addMorphFront: barra.
+	
+	
+	jefe barraVida: barra.
+	enemigos add: jefe.
+	jefe atacar: true.
+]
+
+{ #category : #initialization }
 JuegoMorph >> initialize [ 
 	"Creamos area de juego"
 	
@@ -119,7 +140,7 @@ JuegoMorph >> initialize [
 	self bounds: (0@0 extent: 800@600).
 	self extent: 800@600.
 	self color: Color black.
-	
+	nivel:=1.
 	puntaje := 0.
    etiquetaPuntaje := StringMorph new contents: 'Puntaje: 0'.
    etiquetaPuntaje color: Color white; position: 10@10.
@@ -154,9 +175,9 @@ JuegoMorph >> keyDown: unEvento [
 
 { #category : #movement }
 JuegoMorph >> moverEnemigos [
+    | enFormacion bordeDerecho bordeIzquierdo lider |
 
-   | enFormacion bordeDerecho bordeIzquierdo lider |
-
+    
     enFormacion := enemigos select: [:e | e estaAtacando not].
     lider := enFormacion ifNotEmpty: [ enFormacion first ] ifEmpty: [ nil ].
 
@@ -165,39 +186,61 @@ JuegoMorph >> moverEnemigos [
         enFormacion atRandom atacar: true.
     ].
 
-    enemigos do: [:e |
+    
+    enemigos copy do: [:e |
         e estaAtacando ifTrue: [
             
-            
-            e retornando ifTrue: [
-                lider ifNotNil: [
-                    | destino |
-                    destino := lider position - lider offsetOriginal + e offsetOriginal.
+            e retornando 
+                ifTrue: [ 
                     
-                    "Vuelo suave"
+                    | destino posicionBase | 
+                    posicionBase := lider
+                        ifNotNil: [ lider position - lider offsetOriginal ]
+                        ifNil: [ self position ].
+                    
+                    destino := posicionBase + e offsetOriginal.
+    
                     (e position dist: destino) > 5 
                         ifTrue: [ e position: e position + ((destino - e position) * 0.15) ]
                         ifFalse: [ 
-                            "Llegó: Se sienta, apaga ataque y apaga retorno"
                             e position: destino.
                             e atacar: false.
                             e retornando: false. 
                         ]
-                ]
-            ]
-            
-            ifFalse: [
-               
-             	e realizarMovimientoDeAtaqueHacia: nave.
+                ] 
+                ifFalse: [ 
                     
-               
-                (e top > self bounds bottom) ifTrue: [
-                    e position: (e position x @ (self bounds top - 50)).
-                    e retornando: true. " <--- Aquí activamos la memoria"
-                ].
-            ].
-        ].
-    ].
+                    e realizarMovimientoDeAtaqueHacia: nave.
+                    
+                    
+                    (e top > self bounds bottom) ifTrue: [
+                        
+                        (e isKindOf: JefeFinal) ifTrue: [
+                             e position: e position - (0@100). 
+                        ] 
+                        ifFalse: [
+                            e offsetOriginal isNil 
+                                ifTrue: [ 
+                                    
+                                    e delete. 
+                                    enemigos remove: e. 
+                                ]
+                                ifFalse: [  
+                                    
+                                    e position: (e position x @ (self bounds top - 50)).
+                                    
+                                    
+                                    (enemigos size = 1)
+                                        ifTrue: [ e retornando: false ] 
+                                        ifFalse: [ e retornando: true ]. 
+                                ].
+                        ].
+                    ].
+                ]. 
+        ]. 
+    ]. 
+
+    
     enFormacion ifEmpty: [ ^ self ].
 
     enFormacion do: [:e | e position: e position + (direccion @ 0) ].
@@ -211,46 +254,62 @@ JuegoMorph >> moverEnemigos [
 
 { #category : #initialization }
 JuegoMorph >> reiniciarJuego [
-    self stopStepping.
-    self submorphs do: [:m | 
-        ((m isKindOf: AlienMorph) or: [(m isKindOf: DisparoMorph) or: [m isKindOf: DisparoEnemigoMorph]])
-			ifTrue: [ m delete ] 
-    ].
+   self stopStepping.
+    
+    self submorphs do: [:m |
+        ((m isKindOf: AlienMorph) 
+            or: [ (m isKindOf: ProyectilMorph)
+            or: [ (m isKindOf: ExplosionMorph)
+            or: [ m isKindOf: BarraVidaMorph ] ] ]) 
+                ifTrue: [ m delete ].
+    ]..
+
+   
     enemigos removeAll.
     puntaje := 0.
-    etiquetaPuntaje contents: 'Puntaje: 0'.
- 
-	(nave owner isNil) ifTrue:[ self addMorph: nave].   
-    "Reiniciar Nave también relativo al juego"
-    nave position: (self position + (300@500)). 
-	    
-
+    etiquetaPuntaje contents: 'Puntaje: 0'. 
+    
+   
+    nivel := 1.
+    
+    
+    (nave owner isNil) ifTrue: [ self addMorph: nave ].
+    nave position: (self position + (300@500)). "Posición inicial"
+    
+    
     direccion := 2.
-    self crearEnemigos. "Ahora usará las coordenadas relativas correctas"
+    self crearEnemigos.
+    
     self startStepping.
     self takeKeyboardFocus.
 ]
 
 { #category : #'stepping and presenter' }
 JuegoMorph >> step [ 	
-	| disparos aliens disparosEnemigos atacantes |
+	| disparos aliens disparosEnemigos atacantes jefe naveNueva|
 	
-	"Obtenemos colecciones de los disparos y aliens actuales en el tablero"
+
 	disparos := self submorphs select: [:m | m isKindOf: DisparoMorph].
 	aliens := self submorphs select: [:m | m isKindOf: AlienMorph].
 
 	disparos do: [:unDisparo |
 		aliens do: [:unAlien |
-			"Chequeamos colisión"
+			
 			(unDisparo bounds intersects: unAlien bounds) ifTrue: [
-				self crearExplosion: unAlien center.
-				unDisparo delete.
-				unAlien delete.
-				
-				enemigos remove: unAlien ifAbsent: []. "Sacarlo de la lista lógica"
-            	puntaje := puntaje + 10.
-            etiquetaPuntaje contents: 'Puntaje: ', puntaje asString.
-			]
+    		unDisparo delete.
+    
+    	(unAlien recibirDaño) ifTrue: [
+       	 
+        	self crearExplosion: unAlien center. 
+       	 unAlien delete.
+       	 enemigos remove: unAlien ifAbsent: [].
+       	 puntaje := puntaje + 100.
+				etiquetaPuntaje contents: 'Puntaje: ', puntaje asString.
+   				 ] ifFalse: [
+        		
+       		 self crearExplosion: unDisparo position. 
+    		].
+		]
 		]
 	].
 	(enemigos notEmpty and: [100 atRandom < 3]) ifTrue: [
@@ -275,19 +334,39 @@ JuegoMorph >> step [
 	(atacantes notEmpty and:[100 atRandom < 5]) ifTrue:[ atacantes atRandom disparar.
 		].
 
+	jefe:= enemigos detect: [:e | e isKindOf: JefeFinal] ifNone:[nil].
+	jefe ifNotNil:[
+		naveNueva := jefe intentarInvocarNave.
+		naveNueva ifNotNil: [ 
+				self addMorph: naveNueva.
+				enemigos add: naveNueva.
+				self addMorphFront: nave.
+				 ]
+			].
+		
 	self moverEnemigos.
 	
 	
 	enemigos isEmpty ifTrue: [
-        self stopStepping. "Pausar el juego"
         
-        (UIManager default confirm: '¡FELICITACIONES! Has ganado. ¿Jugar de nuevo?')
-            ifTrue: [ self reiniciarJuego ]
-            ifFalse: [ self delete ].
-            
-        ^ self "Salimos para no seguir procesando"
+        nivel = 1 ifTrue: [
+            nivel := 2.
+            self stopStepping.
+            (UIManager default inform: '¡CUIDADO! SE APROXIMA EL JEFE FINAL').
+            self crearJefeFinal.
+            self startStepping.
+            ^ self.
+        ].
+
+        
+        nivel = 2 ifTrue: [
+             self stopStepping.
+            (UIManager default confirm: '¡VICTORIA TOTAL! Has salvado la galaxia. ¿Jugar de nuevo?')
+                ifTrue: [ self reiniciarJuego ]
+                ifFalse: [ self delete ].
+            ^ self.
+        ].
     ].
-	
 
 enemigos do: [:unAlien |
         (unAlien bounds intersects: nave bounds) ifTrue: [
@@ -297,8 +376,8 @@ enemigos do: [:unAlien |
             
             (UIManager default confirm: '¡GAME OVER! ¿Quieres jugar de nuevo?')
                 ifTrue: [ self reiniciarJuego ]
-                ifFalse: [ self delete ]. "Cierra la ventana"
-            ^ self "Salir del método step para evitar errores"
+                ifFalse: [ self delete ]. 
+            ^ self 
         ]
     ].
 ]

@@ -5,12 +5,6 @@ Class {
 }
 
 { #category : #initialization }
-ProyectilMorph >> initialization [
-	super initialize.
-	self extent: 5@10. "tamano que van a tener las balas"
-]
-
-{ #category : #initialization }
 ProyectilMorph >> initialize [ 
 	super initialize.
 	self extent: 5@10. "tamano que van a tener las balas"
